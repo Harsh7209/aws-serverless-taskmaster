@@ -1,269 +1,509 @@
-# 🚀 AI Bank App - Kubernetes Deployment (KIND)
+<div align="center">
 
-## 📌 Project Background
+<!-- BANNER -->
+<img src="https://raw.githubusercontent.com/serverless/serverless/main/assets/images/serverless_framework_v1_dark.gif" alt="Serverless Framework" width="550"/>
 
-This project is based on an open-source banking application that I adopted and extended.
+<br/>
+<br/>
 
-I enhanced the project by:
-- Adding Kubernetes (K8s) configuration files
-- Containerizing the application using Docker
-- Deploying the application using a Kubernetes cluster created with KIND (Kubernetes IN Docker)
-- Implementing a full **DevSecOps CI/CD pipeline** with security checks, image scanning, and automated Docker Hub publishing
+# ⚡ AWS Serverless HTTP API — Node.js
+
+### Production-grade · Scalable · Zero-Infrastructure · Lightning Fast
+
+<br/>
+
+[![Serverless](https://img.shields.io/badge/serverless-v3-FD5750?style=for-the-badge&logo=serverless&logoColor=white)](https://www.serverless.com/)
+[![Node.js](https://img.shields.io/badge/node.js-18.x-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/lambda/)
+[![API Gateway](https://img.shields.io/badge/API-Gateway-FF4F8B?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/api-gateway/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-6366F1?style=for-the-badge)](CONTRIBUTING.md)
+
+<br/>
+
+> **A battle-hardened, minimal-footprint HTTP API built on AWS Lambda + API Gateway via the Serverless Framework.**
+> Deploy in seconds. Scale to millions. Pay for nothing when idle.
+
+<br/>
+
+[🚀 Quick Start](#-quick-start) · [📖 Docs](#-api-reference) · [🛠 Local Dev](#-local-development) · [🤝 Contributing](#-contributing) · [⭐ Examples](#-advanced-examples)
 
 ---
 
-## 🧱 Tech Stack
+</div>
 
-- Docker
-- Kubernetes
-- KIND (Kubernetes IN Docker)
-- GitHub Actions (CI/CD)
-- Trivy (Image & Filesystem Scanning)
-- GitLeaks (Secret Detection)
-- Hadolint (Dockerfile Linting)
-- OWASP Dependency Check
-- Spring Boot (Application)
+<br/>
+
+## 📌 Table of Contents
+
+- [✨ Why This Template?](#-why-this-template)
+- [🏗 Architecture](#-architecture)
+- [🧰 Prerequisites](#-prerequisites)
+- [🚀 Quick Start](#-quick-start)
+- [⚙️ Configuration](#️-configuration)
+- [📁 Project Structure](#-project-structure)
+- [📡 API Reference](#-api-reference)
+- [🛠 Local Development](#-local-development)
+- [🧪 Testing](#-testing)
+- [🌍 Environment Variables](#-environment-variables)
+- [🔐 Security](#-security)
+- [📈 Performance & Scaling](#-performance--scaling)
+- [⚡ Advanced Examples](#-advanced-examples)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
 ---
 
-## 🔐 DevSecOps Pipeline
+<br/>
 
-The project includes a full **DevSecOps CI/CD pipeline** implemented using GitHub Actions. Security is integrated at every stage — from code commit to Docker Hub push — following the **"Shift Left"** security philosophy.
+## ✨ Why This Template?
 
-### 🔄 Pipeline Stages Overview
+| Feature | Details |
+|---|---|
+| 🟢 **Zero cold-start overhead** | Lightweight Node.js handler with minimal dependencies |
+| 💸 **True pay-per-use** | No charges when idle — AWS Free Tier friendly |
+| 🔁 **Auto-scaling** | From 0 to thousands of concurrent requests automatically |
+| 🌐 **Global edge** | Deploy to any AWS region with a single flag |
+| 🔒 **Secure by default** | IAM-scoped permissions, no over-privileged roles |
+| ⚙️ **IaC-first** | Entire infra defined in `serverless.yml` — no click-ops |
+| 🛠 **Dev-friendly** | Local emulation with `serverless-offline`, no cloud needed |
+
+---
+
+<br/>
+
+## 🏗 Architecture
 
 ```
-Code Push
-    │
-    ▼
-┌─────────────────────┐
-│  1. Lint Check       │  ← Code quality & style
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│  2. GitLeaks Check   │  ← Secret & credential detection
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│  3. Packages Check   │  ← Dependency vulnerability scan (OWASP)
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│  4. Dockerfile Check │  ← Dockerfile best practices (Hadolint)
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│  5. Image Scan       │  ← Container image scan (Trivy)
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│  6. Build & Push     │  ← Build Docker image & push to Docker Hub
-└─────────────────────┘
+                         ┌─────────────────────────────────────────────┐
+                         │                  AWS Cloud                   │
+                         │                                             │
+  Client (curl / app)    │    ┌──────────────┐     ┌──────────────┐   │
+       │                 │    │              │     │              │   │
+       │  HTTP Request   │    │  API Gateway │     │   Lambda     │   │
+       │─────────────────┼───▶│  (HTTP API)  │────▶│  Function    │   │
+       │                 │    │              │     │  (Node.js)   │   │
+       │◀────────────────┼────│  Stage: dev  │◀────│              │   │
+       │  JSON Response  │    │              │     │              │   │
+                         │    └──────────────┘     └──────────────┘   │
+                         │                               │             │
+                         │                    ┌──────────▼──────────┐ │
+                         │                    │   CloudWatch Logs   │ │
+                         │                    └─────────────────────┘ │
+                         └─────────────────────────────────────────────┘
 ```
 
----
-
-### 🧹 Stage 1 — Lint Check
-
-Runs static code analysis to enforce code quality and catch common issues early.
-
-- Checks for code style violations
-- Flags syntax issues and anti-patterns
-- Fails the pipeline if linting errors are found
+**Request Flow:**
+1. Client sends HTTP `GET` request to API Gateway endpoint
+2. API Gateway routes it to the mapped Lambda function
+3. Lambda executes the Node.js handler and returns a response
+4. API Gateway forwards the JSON response back to the client
+5. All invocation logs are streamed to **CloudWatch**
 
 ---
 
-### 🔑 Stage 2 — GitLeaks Check
+<br/>
 
-Uses **[GitLeaks](https://github.com/gitleaks/gitleaks)** to scan the entire repository for accidentally committed secrets and sensitive data.
+## 🧰 Prerequisites
 
-**Detects:**
-- API keys & tokens
-- Passwords & credentials
-- Private keys & certificates
-- Cloud provider secrets (AWS, GCP, Azure)
+Before you begin, ensure you have the following installed and configured:
 
-```yaml
-- name: Run GitLeaks
-  uses: gitleaks/gitleaks-action@v2
-```
+| Tool | Version | Install |
+|---|---|---|
+| **Node.js** | `>= 18.x` | [nodejs.org](https://nodejs.org/) |
+| **npm** | `>= 9.x` | Bundled with Node.js |
+| **Serverless CLI** | `v3` | `npm i -g serverless` |
+| **AWS CLI** | `>= 2.x` | [aws.amazon.com/cli](https://aws.amazon.com/cli/) |
+| **AWS Account** | Active | [aws.amazon.com](https://aws.amazon.com/) |
 
-> ⚠️ Pipeline fails immediately if any secrets are detected.
-
----
-
-### 📦 Stage 3 — Packages Check
-
-Uses **OWASP Dependency Check** to scan all project dependencies for known CVEs (Common Vulnerabilities and Exposures).
-
-- Scans Maven/Gradle/npm dependencies
-- Cross-references against the **NVD (National Vulnerability Database)**
-- Generates a detailed vulnerability report
-- Fails on HIGH or CRITICAL severity findings
-
-```yaml
-- name: Run OWASP Dependency Check
-  uses: dependency-check/Dependency-Check_Action@main
-```
-
----
-
-### 🐳 Stage 4 — Dockerfile Check
-
-Uses **[Hadolint](https://github.com/hadolint/hadolint)** to lint the `Dockerfile` and ensure it follows best practices.
-
-**Checks include:**
-- Using specific image tags instead of `latest`
-- Combining `RUN` commands to reduce layers
-- Avoiding `sudo` usage
-- Correct `COPY` vs `ADD` usage
-- Security hardening recommendations
-
-```yaml
-- name: Lint Dockerfile
-  uses: hadolint/hadolint-action@v3.1.0
-  with:
-    dockerfile: Dockerfile
-```
-
----
-
-### 🛡️ Stage 5 — Image Scan (Trivy)
-
-Uses **[Trivy](https://github.com/aquasecurity/trivy)** by Aqua Security to scan the built Docker image for OS and application-level vulnerabilities.
-
-**Scans for:**
-- OS package vulnerabilities (Alpine, Ubuntu, Debian, etc.)
-- Application dependency vulnerabilities
-- Misconfigurations
-- Secret exposure inside the image
-
-```yaml
-- name: Run Trivy vulnerability scanner
-  uses: aquasecurity/trivy-action@master
-  with:
-    image-ref: bankapp:latest
-    format: table
-    severity: CRITICAL,HIGH
-    exit-code: '1'
-```
-
-> ⚠️ Pipeline fails if CRITICAL or HIGH vulnerabilities are found in the image.
-
----
-
-### 🚢 Stage 6 — Build & Push to Docker Hub
-
-After all security checks pass, the Docker image is built and pushed to **Docker Hub** automatically.
-
-```yaml
-- name: Build Docker image
-  run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/bankapp:latest .
-
-- name: Push to Docker Hub
-  run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/bankapp:latest
-```
-
-**Required GitHub Secrets:**
-
-| Secret | Description |
-|--------|-------------|
-| `DOCKERHUB_USERNAME` | Your Docker Hub username |
-| `DOCKERHUB_TOKEN` | Docker Hub access token (not password) |
-
----
-
-## ☸️ Kubernetes Implementation
-
-I created a `k8s/` folder that contains all the Kubernetes manifests required to deploy the application.
-
-### 🔧 Deployment
-
-- Manages application pods
-- Ensures desired number of replicas
-- Automatically restarts failed containers
-
-### 🌐 Service
-
-- Exposes the application
-- Routes traffic to the pods
-- Enables internal/external access
-
----
-
-## 🚀 Deployment Steps (Using KIND)
-
-### 1️⃣ Create KIND Cluster
+### Configure AWS Credentials
 
 ```bash
-kind create cluster --name bankapp-cluster
+aws configure
+# AWS Access Key ID:     <your-access-key>
+# AWS Secret Access Key: <your-secret-key>
+# Default region:        us-east-1
+# Default output format: json
 ```
 
-### 2️⃣ Build Docker Image
+> 💡 **Tip:** Use AWS IAM roles with least-privilege access. Never commit credentials to version control.
+
+---
+
+<br/>
+
+## 🚀 Quick Start
+
+Get your API live in under 2 minutes:
 
 ```bash
-docker build -t bankapp .
+# 1. Clone the repository
+git clone https://github.com/your-org/aws-node-http-api.git
+cd aws-node-http-api
+
+# 2. Install dependencies
+npm install
+
+# 3. Deploy to AWS (dev stage, us-east-1)
+serverless deploy
+
+# 4. Call your live API 🎉
+curl https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/
 ```
 
-### 3️⃣ Load Image into KIND
+**Expected Output:**
 
-```bash
-kind load docker-image bankapp --name bankapp-cluster
-```
-
-### 4️⃣ Deploy to Kubernetes
-
-```bash
-kubectl apply -f k8s/
-```
-
-### 5️⃣ Verify
-
-```bash
-kubectl get pods
-kubectl get svc
+```json
+{
+  "message": "Go Serverless v3.0! Your function executed successfully!",
+  "input": {
+    "version": "2.0",
+    "routeKey": "GET /",
+    "rawPath": "/",
+    "requestContext": { ... }
+  }
+}
 ```
 
 ---
+
+<br/>
+
+## ⚙️ Configuration
+
+All infrastructure configuration lives in `serverless.yml`:
+
+```yaml
+service: aws-node-http-api-project
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1        # 🌍 Change your target region here
+  stage: ${opt:stage, 'dev'}
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: GET
+```
+
+### Deploy to Different Stages
+
+```bash
+# Deploy to production
+serverless deploy --stage prod
+
+# Deploy to a specific region
+serverless deploy --region eu-west-1
+
+# Deploy with a custom profile
+serverless deploy --aws-profile myprofile
+```
+
+---
+
+<br/>
 
 ## 📁 Project Structure
 
 ```
-.
-├── .github/
-│   └── workflows/
-│       └── devsecops-pipeline.yml   # CI/CD pipeline definition
-├── k8s/
-│   ├── deployment.yaml              # Kubernetes Deployment manifest
-│   └── service.yaml                 # Kubernetes Service manifest
-├── src/                             # Application source code
-├── Dockerfile                       # Container build instructions
-└── README.md
+aws-node-http-api/
+├── 📄 handler.js          # Lambda function handler
+├── 📄 serverless.yml      # Infrastructure as Code (IaC) config
+├── 📄 package.json        # Node.js dependencies & scripts
+├── 📄 .gitignore          # Ignored files (node_modules, .serverless)
+└── 📄 README.md           # You are here
+```
+
+### `handler.js` — The Core
+
+```javascript
+'use strict';
+
+module.exports.hello = async (event) => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify(
+      {
+        message: 'Go Serverless v3.0! Your function executed successfully!',
+        input: event,
+      },
+      null,
+      2
+    ),
+  };
+};
 ```
 
 ---
 
-## 💡 Summary
+<br/>
 
-- Picked an open-source banking project
-- Added Kubernetes configuration for container orchestration
-- Used KIND to create a local Kubernetes cluster
-- Deployed the application successfully on Kubernetes
-- Implemented a **full DevSecOps pipeline** including:
-  - ✅ Lint Check
-  - ✅ GitLeaks secret scanning
-  - ✅ OWASP Dependency vulnerability check
-  - ✅ Dockerfile best-practice linting (Hadolint)
-  - ✅ Container image scanning (Trivy)
-  - ✅ Automated build & push to Docker Hub
+## 📡 API Reference
+
+### `GET /`
+
+Returns a success message with the full Lambda event context.
+
+**Request**
+
+```http
+GET https://<api-id>.execute-api.<region>.amazonaws.com/
+```
+
+**Response `200 OK`**
+
+```json
+{
+  "message": "Go Serverless v3.0! Your function executed successfully!",
+  "input": {
+    "version": "2.0",
+    "routeKey": "GET /",
+    "rawPath": "/",
+    "rawQueryString": "",
+    "headers": { ... },
+    "requestContext": { ... },
+    "isBase64Encoded": false
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `message` | `string` | Static success message |
+| `input` | `object` | Full API Gateway event payload |
 
 ---
 
-## 👨‍💻 Author
+<br/>
 
-**Harsh Choubey**
+## 🛠 Local Development
+
+### Option 1 — Direct Lambda Invocation
+
+Run the function locally without any HTTP layer:
+
+```bash
+serverless invoke local --function hello
+```
+
+```json
+{
+  "statusCode": 200,
+  "body": "{\n  \"message\": \"Go Serverless v3.0! ...\"\n}"
+}
+```
+
+### Option 2 — Full API Gateway Emulation (Recommended)
+
+Install and run `serverless-offline` for a full local HTTP server:
+
+```bash
+# Install the plugin (one-time)
+serverless plugin install -n serverless-offline
+
+# Start the local server
+serverless offline
+```
+
+Your API is now available at `http://localhost:3000`:
+
+```bash
+curl http://localhost:3000/
+```
+
+> 🔁 The server **hot-reloads** on file changes — no restart needed during development.
+
+### Option 3 — Emulate with Docker (Advanced)
+
+```bash
+# Use AWS SAM for Docker-based local Lambda emulation
+npm install -g aws-sam-cli
+sam local start-api
+```
+
+---
+
+<br/>
+
+## 🧪 Testing
+
+```bash
+# Run unit tests
+npm test
+
+# Run with coverage report
+npm run test:coverage
+
+# Run integration tests against deployed API
+API_URL=https://xxx.execute-api.us-east-1.amazonaws.com npm run test:integration
+```
+
+**Recommended Testing Stack:**
+
+| Layer | Tool |
+|---|---|
+| Unit | [Jest](https://jestjs.io/) |
+| Integration | [Supertest](https://github.com/ladjs/supertest) |
+| E2E | [Artillery](https://www.artillery.io/) |
+| Load | [k6](https://k6.io/) |
+
+---
+
+<br/>
+
+## 🌍 Environment Variables
+
+Define environment variables in `serverless.yml`:
+
+```yaml
+provider:
+  environment:
+    NODE_ENV: ${opt:stage, 'dev'}
+    MY_SECRET: ${ssm:/my-app/my-secret}   # From AWS SSM Parameter Store
+    API_KEY: ${env:API_KEY}               # From local shell environment
+```
+
+> 🔐 **Never hardcode secrets.** Use [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) or [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/).
+
+---
+
+<br/>
+
+## 🔐 Security
+
+> ⚠️ By default, the deployed API is **publicly accessible**. For production, implement one of the following:
+
+### Option A — Lambda Authorizer (JWT/OAuth)
+
+```yaml
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: GET
+          authorizer:
+            name: myAuthorizer
+```
+
+### Option B — API Key Authentication
+
+```yaml
+provider:
+  apiGateway:
+    apiKeys:
+      - myApiKey
+```
+
+### Option C — AWS Cognito User Pools
+
+```yaml
+httpApi:
+  authorizers:
+    cognitoAuthorizer:
+      identitySource: $request.header.Authorization
+      issuerUrl: https://cognito-idp.{region}.amazonaws.com/{userPoolId}
+      audience:
+        - !Ref UserPoolClient
+```
+
+📖 Full docs: [Serverless Auth Docs](https://www.serverless.com/framework/docs/providers/aws/events/http-api/#jwt-authorizers)
+
+---
+
+<br/>
+
+## 📈 Performance & Scaling
+
+| Metric | Value |
+|---|---|
+| **Cold Start** | ~200–400ms (Node.js 18.x) |
+| **Warm Invocation** | < 10ms |
+| **Concurrency** | 1,000 (default, adjustable) |
+| **Timeout** | 6s (default), max 15min |
+| **Max Payload** | 6MB (sync), 256KB (async) |
+
+### Tips to Minimize Cold Starts
+
+- ✅ Keep `node_modules` lean — use `bundling` with esbuild
+- ✅ Use Lambda **Provisioned Concurrency** for latency-critical paths
+- ✅ Enable **Lambda SnapStart** (Java only, but useful to know)
+- ✅ Deploy in **arm64** (Graviton2) for 20% better price/perf ratio
+
+```yaml
+provider:
+  architecture: arm64   # 🦾 Graviton2 — faster & cheaper
+  memorySize: 256       # 💾 Right-size your function
+  timeout: 10           # ⏱ Don't leave it at 6s default
+```
+
+---
+
+<br/>
+
+## ⚡ Advanced Examples
+
+| Example | Description | Link |
+|---|---|---|
+| 🗄 **DynamoDB CRUD** | Full REST API with persistence | [View](https://github.com/serverless/examples/tree/master/aws-node-rest-api-with-dynamodb) |
+| 🔑 **JWT Auth** | Protected routes with Cognito | [View](https://github.com/serverless/examples) |
+| 📦 **TypeScript** | Fully typed Lambda handlers | [View](https://github.com/serverless/examples/tree/master/aws-node-typescript-rest-api-with-dynamodb) |
+| 📬 **SQS Queue** | Async messaging with SQS | [View](https://github.com/serverless/examples) |
+| 📸 **S3 Trigger** | Process uploads automatically | [View](https://github.com/serverless/examples) |
+| 🌐 **GraphQL** | Apollo Server on Lambda | [View](https://github.com/serverless/examples) |
+
+---
+
+<br/>
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+```bash
+# Fork & clone
+git clone https://github.com/your-username/aws-node-http-api.git
+
+# Create your feature branch
+git checkout -b feature/amazing-feature
+
+# Commit your changes
+git commit -m 'feat: add amazing feature'
+
+# Push and open a Pull Request
+git push origin feature/amazing-feature
+```
+
+Please follow [Conventional Commits](https://www.conventionalcommits.org/) and ensure all tests pass before submitting a PR.
+
+---
+
+<br/>
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
+
+---
+
+<br/>
+
+<div align="center">
+
+**Built with ❤️ using the [Serverless Framework](https://www.serverless.com/)**
+
+⭐ Star this repo if it saved you time!
+
+<br/>
+
+[![Serverless](https://img.shields.io/badge/Powered%20by-Serverless-FD5750?style=flat-square&logo=serverless)](https://www.serverless.com/)
+[![AWS](https://img.shields.io/badge/Deployed%20on-AWS-FF9900?style=flat-square&logo=amazon-aws)](https://aws.amazon.com/)
+[![Node.js](https://img.shields.io/badge/Runtime-Node.js-339933?style=flat-square&logo=node.js)](https://nodejs.org/)
+
+</div>
